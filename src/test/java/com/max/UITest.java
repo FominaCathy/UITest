@@ -1,52 +1,52 @@
 package com.max;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
-public class UITest {
+
+public class UITest extends AbstractTest {
+    private static WebDriver driver;
+    private static WebDriverWait wait;
+    private static String urlBase = "https://gb.ru/login";
+
+
+    @BeforeEach
+    void openWin() {
+        driver = new ChromeDriver(getOptions());
+        wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+
+    }
 
     @Test
     void testGBNotEmailLogin() {
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--incognito");
-        //options.addArguments("--headless");
-        options.addArguments("start-maximized");
-        options.addArguments("--remote-allow-origins=*");
-        WebDriver driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
-        driver.get("https://gb.ru/login");
+        driver.get(urlBase);
 
-        driver.findElement(By.xpath("/html/body/div[2]/div[7]/div/form/div[1]/input")).sendKeys("login");
-        driver.findElement(By.xpath("/html/body/div[2]/div[7]/div/form/div[2]/input")).sendKeys("password");
-        driver.findElement(By.xpath("/html/body/div[2]/div[7]/div/form/div[4]/input")).click();
-
-        Assertions.assertFalse(driver.findElements(By.xpath("/html/body/div[2]/div[7]/div/form/div[1]/ul")).isEmpty());
+        LoginPage loginPage = new LoginPage(driver, wait);
+        loginPage.login("login", "password");
+        String textParsley = loginPage.getTextParsleyLogin();
+        Assertions.assertFalse(textParsley.isEmpty());
     }
 
     @Test
     void testGBWithoutPassword() {
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--incognito");
-        //options.addArguments("--headless");
-        options.addArguments("start-maximized");
-        options.addArguments("--remote-allow-origins=*");
-        WebDriver driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
-        driver.get("https://gb.ru/login");
-        driver.findElement(By.xpath("/html/body/div[2]/div[7]/div/form/div[1]/input")).sendKeys("login@login.ru");
-        driver.findElement(By.xpath("/html/body/div[2]/div[7]/div/form/div[4]/input")).click();
+        driver.get(urlBase);
 
-        Assertions.assertFalse(driver.findElements(By.xpath("/html/body/div[2]/div[7]/div/form/div[2]/ul")).isEmpty());
+        LoginPage loginPage = new LoginPage(driver, wait);
+        loginPage.login("login@login.ru", "");
+        String textParsley = loginPage.getTextParsleyPassword();
+        Assertions.assertFalse(textParsley.isEmpty());
+   }
 
+    @AfterEach
+    void closeWin() {
+        driver.quit();
     }
 
 }
